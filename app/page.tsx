@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 const calculators = [
   {
     id: "wax-casting",
@@ -198,6 +200,7 @@ const calculators = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#b8860b] via-[#8B6914] to-[#5a4008] flex flex-col">
       {/* Header */}
@@ -233,6 +236,7 @@ export default function Home() {
             <button
               key={calc.id}
               type="button"
+              onClick={() => router.push(`/calc/${calc.id}`)}
               className="calc-tile group flex flex-col items-center justify-center gap-2 rounded-2xl text-center cursor-pointer select-none"
               style={{
                 background: "linear-gradient(145deg, #ffe580, #f0c040, #c89820)",

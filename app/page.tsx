@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { MD } from "@/lib/theme";
-import { PageShell, AppBar, PageContent } from "@/components/ui";
+import { PageShell, PageContent } from "@/components/ui";
+import { useAuth } from "@/lib/auth";
 
 const READY_IDS = new Set([
   "wax-casting", "lock", "ring", "ligature", "solder",
@@ -207,6 +208,10 @@ const calculators = [
 
 export default function Home() {
   const router = useRouter();
+  const auth   = useAuth();
+
+  // Decide whether a READY tile is actually clickable
+  const canUse = auth.status === "allowed";
 
   return (
     <PageShell>
@@ -232,12 +237,32 @@ export default function Home() {
           <h1 style={{ color: "#fff", fontSize: 18, fontWeight: 500, margin: 0, letterSpacing: 0.15 }}>Ювелирный Калькулятор</h1>
           <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, margin: 0 }}>Профессиональные расчёты</p>
         </div>
+        {/* Admin link */}
+        {auth.role === "admin" && (
+          <button onClick={() => router.push("/admin")} title="Панель администратора"
+            style={{ marginLeft: "auto", background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="#fff" strokeWidth="2"/>
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="#fff" strokeWidth="2"/>
+            </svg>
+          </button>
+        )}
       </header>
 
       <PageContent>
+        {/* Auth status banner */}
+        {auth.status === "loading" && (
+          <div style={{ textAlign: "center", padding: "24px 0", color: MD.textLow, fontSize: 13 }}>Проверка доступа…</div>
+        )}
+        {auth.status === "denied" && (
+          <div style={{ background: "#FFF3E0", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E65100" strokeWidth="2" strokeLinecap="round"/></svg>
+            <span style={{ color: "#E65100", fontSize: 13, fontWeight: 500 }}>Доступ ограничен. Обратитесь к администратору.</span>
+          </div>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
           {calculators.map((calc) => {
-            const ready = READY_IDS.has(calc.id);
+            const ready = READY_IDS.has(calc.id) && canUse;
             return (
               <button
                 key={calc.id}
